@@ -20715,6 +20715,46 @@ a.text-muted:hover {
   color: #e6e8ea;
 }@charset "UTF-8";
 
+.textblue {
+  color: #3490dc;
+}
+
+.textindigo {
+  color: #6574cd;
+}
+
+.textpurple {
+  color: #9561e2;
+}
+
+.textpink {
+  color: #f66d9b;
+}
+
+.textred {
+  color: #e3342f;
+}
+
+.textorange {
+  color: #f6993f;
+}
+
+.textyellow {
+  color: #ffed4a;
+}
+
+.textgreen {
+  color: #38c172;
+}
+
+.textteal {
+  color: #4dc0b5;
+}
+
+.textcyan {
+  color: #6cb2eb;
+}
+
 /*!
  * Bootstrap v4.3.1 (https://getbootstrap.com/)
  * Copyright 2011-2019 The Bootstrap Authors
