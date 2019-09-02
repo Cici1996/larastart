@@ -25,18 +25,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="user in users" :key="user.id">
-                                <td>{{user.id}}</td>
+                            <tr v-for="(user,indexNum) in users" :key="user.id">
+                                <td>{{indexNum + 1}}</td>
                                 <td>{{user.name}}</td>
                                 <td>{{user.email}}</td>
-                                <td>{{user.type}}</td>
-                                <td>{{user.created_at}}</td>
+                                <td>{{user.type | upFirtsText}}</td>
+                                <td>{{user.created_at | myDate}}</td>
                                 <td>
                                     <a href="#">
                                         <i class="fas fa-edit textblue"></i>
                                     </a>
                                     /
-                                    <a href="#">
+                                    <a href="javascript:void(0)" @click="deleteUser(user.id)">
                                         <i class="fas fa-trash textred"></i>
                                     </a>
                                 </td>
@@ -136,11 +136,61 @@
                 axios.get("api/user").then(({data}) => (this.users = data.data))
             },
             createUser(){
-                this.form.post('api/user').then(({ data }) => { console.log(data) })
+                this.$Progress.start()
+                this.form.post('api/user').then(({ data }) => { 
+                    console.log(data); 
+                    
+                    this.$Progress.finish() 
+                    
+                    $("#addNew").modal('hide')
+                    Toast.fire({
+                        type: 'success',
+                        title: 'Signed in successfully'
+                    }) 
+
+                    this.$emit('afterCreated')
+                })
+                .catch(() => {
+
+                })
+            },
+            deleteUser(id){
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+
+                    if(result.value){
+                        this.form.delete('api/user/'+id)
+                            .then(() => {
+                                Swal.fire({
+                                    title: 'Success',
+                                    text: "Delete Data Success",
+                                    type: 'success'
+                                })
+                                this.$emit('afterCreated')
+                            })
+                            .catch(() => {
+                                Swal.fire(
+                                    'Failed!',
+                                    'There Was Something Wrong',
+                                    'warning'
+                                )
+                            })
+                    }
+                })
             }
         },
         mounted() {
             this.loadUser()
+            this.$on('afterCreated',function(){
+                this.loadUser()
+            })
         }
     }
 </script>
