@@ -6,8 +6,9 @@
                     <h3 class="card-title">Users Table</h3>
 
                     <div class="card-tools">
-                        <button class="btn btn-success" data-toggle="modal" data-target="#addNew">
-                            Add New <i class="fas fa-user-plus fa-fw"></i>
+                        <button class="btn btn-success" @click="newModal">
+                            Add New
+                            <i class="fas fa-user-plus fa-fw"></i>
                         </button>
                     </div>
                 </div>
@@ -32,7 +33,7 @@
                                 <td>{{user.type | upFirtsText}}</td>
                                 <td>{{user.created_at | myDate}}</td>
                                 <td>
-                                    <a href="#">
+                                    <a href="#" @click="editModal(user)">
                                         <i class="fas fa-edit textblue"></i>
                                     </a>
                                     /
@@ -49,21 +50,23 @@
             <!-- /.card -->
         </div>
 
-        <form class="form-horizontal" @submit.prevent="createUser">
+        <form class="form-horizontal" @submit.prevent="(editMode == true)?updateUser():createUser()">
             <div class="modal fade" id="addNew" tabindex="-1" role="dialog" aria-labelledby="addNewLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="addNewLabel">Add New</h5>
+                            <h5 class="modal-title" v-show="!editMode" id="addNewLabel">Add New</h5>
+                            <h5 class="modal-title" v-show="editMode" id="addNewLabel">Edit User Info</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
+                            <input v-model="form.id" id="id" type="hidden" name="id" />
                             <div class="form-group row">
                                 <label for="inputEmail3" class="col-sm-2 control-label">Name</label>
                                 <div class="col-sm-10">
-                                    <input v-model="form.name" id="name" type="text" name="name" class="form-control" :class="{ 'is-invalid': form.errors.has('name') }">
+                                    <input v-model="form.name" id="name" type="text" name="name" class="form-control" :class="{ 'is-invalid': form.errors.has('name') }" />
                                     <has-error :form="form" field="name"></has-error>
                                 </div>
                             </div>
@@ -71,7 +74,7 @@
                             <div class="form-group row">
                                 <label for="inputEmail3" class="col-sm-2 control-label">Email</label>
                                 <div class="col-sm-10">
-                                    <input v-model="form.email" id="email" type="email" name="email" class="form-control" :class="{ 'is-invalid': form.errors.has('email') }">
+                                    <input v-model="form.email" id="email" type="email" name="email" class="form-control" :class="{ 'is-invalid': form.errors.has('email') }" />
                                     <has-error :form="form" field="email"></has-error>
                                 </div>
                             </div>
@@ -88,7 +91,7 @@
                                 <label for="inputEmail3" class="col-sm-2 control-label">User Role</label>
                                 <div class="col-sm-10">
                                     <select name="type" id="type" v-model="form.type" class="form-control" :class="{ 'is-invalid': form.errors.has('type') }">
-                                        <option value="">Select User Role</option>
+                                        <option value>Select User Role</option>
                                         <option value="admin">Admin</option>
                                         <option value="user">Standard User</option>
                                         <option value="author">Author</option>
@@ -100,17 +103,18 @@
                             <div class="form-group row">
                                 <label for="inputEmail3" class="col-sm-2 control-label">Password</label>
                                 <div class="col-sm-10">
-                                    <input v-model="form.password" id="password" type="password" name="password" class="form-control" :class="{ 'is-invalid': form.errors.has('password') }">
+                                    <input v-model="form.password" id="password" type="password" name="password" class="form-control" :class="{ 'is-invalid': form.errors.has('password') }" />
                                     <has-error :form="form" field="password"></has-error>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                            <button type="submit" :disabled="form.busy" class="btn btn-primary">Create</button>
+                            <button type="submit" :disabled="form.busy" v-show="editMode" class="btn btn-primary">Update</button>
+                            <button type="submit" :disabled="form.busy" v-show="!editMode" class="btn btn-success">Create</button>
                         </div>
                     </div>
-                </div> 
+                </div>
             </div>
         </form>
     </div>
@@ -118,79 +122,113 @@
 
 <script>
     export default {
-        data(){
-            return {
-                users : {},
-                form : new Form({
-                    name : '',
-                    email : '',
-                    password : '',
-                    type : '',
-                    bio : '',
-                    photo : ''
-                })
-            }
-        },
-        methods:{
-            loadUser(){
-                axios.get("api/user").then(({data}) => (this.users = data.data))
+        data() {
+                return {
+                    editMode: false,
+                    users: {},
+                    form: new Form({
+                        id: "",
+                        name: "",
+                        email: "",
+                        password: "",
+                        type: "",
+                        bio: "",
+                        photo: ""
+                    })
+                };
             },
-            createUser(){
-                this.$Progress.start()
-                this.form.post('api/user').then(({ data }) => { 
-                    console.log(data); 
-                    
-                    this.$Progress.finish() 
-                    
-                    $("#addNew").modal('hide')
-                    Toast.fire({
-                        type: 'success',
-                        title: 'Signed in successfully'
-                    }) 
+            methods: {
+                newModal() {
+                        this.editMode = false;
+                        this.form.reset();
+                        $("#addNew").modal("show");
+                    },
+                    editModal(users) {
+                        this.editMode = true;
 
-                    this.$emit('afterCreated')
-                })
-                .catch(() => {
+                        this.form.reset();
+                        $("#addNew").modal("show");
+                        this.form.fill(users);
+                        console.log('editmodal')
+                    },
+                    loadUser() {
+                        axios.get("api/user").then(({
+                            data
+                        }) => (this.users = data.data));
+                    },
+                    createUser() {
+                        this.$Progress.start();
+                        this.form
+                            .post("api/user")
+                            .then(({
+                                data
+                            }) => {
+                                console.log(data);
 
-                })
-            },
-            deleteUser(id){
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    type: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
+                                this.$Progress.finish();
 
-                    if(result.value){
-                        this.form.delete('api/user/'+id)
-                            .then(() => {
-                                Swal.fire({
-                                    title: 'Success',
-                                    text: "Delete Data Success",
-                                    type: 'success'
-                                })
-                                this.$emit('afterCreated')
+                                $("#addNew").modal("hide");
+                                Toast.fire({
+                                    type: "success",
+                                    title: "Signed in successfully"
+                                });
+
+                                this.$emit("afterCreated");
                             })
                             .catch(() => {
-                                Swal.fire(
-                                    'Failed!',
-                                    'There Was Something Wrong',
-                                    'warning'
-                                )
+                                this.$Progress.fail();
+                            });
+                    },
+                    updateUser(id) {
+                        this.$Progress.start();
+                        this.form.put('api/user/' + this.form.id)
+                            .then(() => {
+                                Swal.fire({
+                                    title: "Success",
+                                    text: "Delete Data Success",
+                                    type: "success"
+                                });
+                                $("#addNew").modal("hide");
+                                this.$Progress.finish();
+                                this.loadUser();
                             })
+                            .catch(() => {
+                                this.$Progress.fail();
+                            })
+                    },
+                    deleteUser(id) {
+                        Swal.fire({
+                            title: "Are you sure?",
+                            text: "You won't be able to revert this!",
+                            type: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Yes, delete it!"
+                        }).then(result => {
+                            if (result.value) {
+                                this.form
+                                    .delete("api/user/" + id)
+                                    .then(() => {
+                                        Swal.fire({
+                                            title: "Success",
+                                            text: "Delete Data Success",
+                                            type: "success"
+                                        });
+                                        this.$emit("afterCreated");
+                                    })
+                                    .catch(() => {
+                                        Swal.fire("Failed!", "There Was Something Wrong", "warning");
+                                    });
+                            }
+                        });
                     }
-                })
+            },
+            mounted() {
+                this.loadUser();
+                this.$on("afterCreated", function() {
+                    this.loadUser();
+                });
             }
-        },
-        mounted() {
-            this.loadUser()
-            this.$on('afterCreated',function(){
-                this.loadUser()
-            })
-        }
-    }
+    };
 </script>

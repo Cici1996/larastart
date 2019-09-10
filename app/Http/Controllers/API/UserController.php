@@ -11,6 +11,10 @@ use App\User;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -48,15 +52,10 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+ 
+    public function profile()
     {
-        //
+        return auth('api')->user();
     }
 
     /**
@@ -68,7 +67,26 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $user = User::findOrFail($id);
+        $this->validate($request,[
+            'name' => 'required|string|max:64',
+            'email' => 'required|string|max:191|unique:users,email,'.$user->id,
+            'password' => 'sometimes|min:5'
+        ]);
+
+        $user->update($request->all());
+
+        return ['message' => 'User Updated'];
+    }
+
+    public function updateProfile(Request $request){
+        $user = auth('api')->user();
+        if($request->photo){
+            $name = time().'.'.explode('/',explode(':',substr($request->photo,0,strpos($request->photo,';')))[1])[1];
+            \Image::make($request->photo)->save(public_path('img/profile/').$name);
+        }
+
+        return ['message' => 'success'];
     }
 
     /**

@@ -17,6 +17,7 @@ import Swal from 'sweetalert2'
 import dashboard from './components/Dashboard.vue'
 import profile from './components/Profile.vue'
 import users from './components/Users.vue'
+import developer from './components/Developer.vue'
 
 window.Form = Form;
 Vue.component(HasError.name, HasError)
@@ -31,19 +32,20 @@ Vue.use(VueProgressBar, {
 Vue.use(VueRouter);
 
 let routes = [
-    { path: '/dasboard', component: dashboard},
+    { path: '/dasboard', component: dashboard },
     { path: '/profile', component: profile },
-    { path: '/users', component: users }
+    { path: '/users', component: users },
+    { path: '/developer', component: developer }
 ]
 
 const router = new VueRouter({
-    mode:'history',
+    mode: 'history',
     linkActiveClass: 'active',
     routes // short for `routes: routes`
 })
 
-Vue.filter('upFirtsText', function(text){
-    if(text != null){
+Vue.filter('upFirtsText', function (text) {
+    if (text != null) {
         return text.charAt(0).toUpperCase() + text.slice(1);
     }
 })
@@ -64,6 +66,20 @@ window.Toast = Toast;
 window.Swal = Swal;
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
+Vue.component(
+    'passport-clients',
+    require('./components/passport/Clients.vue').default
+);
+
+Vue.component(
+    'passport-authorized-clients',
+    require('./components/passport/AuthorizedClients.vue').default
+);
+
+Vue.component(
+    'passport-personal-access-tokens',
+    require('./components/passport/PersonalAccessTokens.vue').default
+);
 
 const app = new Vue({
     el: '#app',
